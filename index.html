@@ -27,6 +27,14 @@
 
   <label>Wochentag & Uhrzeit:
     <select id="trainingSlot">
+      <div id="customTimeFields" style="display: none;">
+        <label>Von:
+          <input type="time" id="zeitVon">
+        </label>
+        <label>Bis:
+          <input type="time" id="zeitBis">
+        </label>
+      </div>
       <option value="dienstag">Dienstag (17:30 - 19:00)</option>
       <option value="donnerstag">Donnerstag (17:00 - 18:30)</option>
     </select>
@@ -79,6 +87,10 @@
       } else if (slot === 'donnerstag') {
         von = '17:00';
         bis = '18:30';
+      } else if (slot === 'custom') {
+        von = document.getElementById('zeitVon').value;
+        bis = document.getElementById('zeitBis').value;
+        if (!von || !bis) return alert('Bitte beide Uhrzeiten eingeben.');
       }
 
       const entries = loadFromStorage();
@@ -87,7 +99,6 @@
       renderList();
       alert('Eintrag gespeichert.');
     }
-
     function generateExcel() {
       const entries = loadFromStorage();
       const ws_data = [
@@ -112,6 +123,11 @@
     }
 
     renderList();
+
+    document.getElementById('trainingSlot').addEventListener('change', () => {
+    const isCustom = document.getElementById('trainingSlot').value === 'custom';
+    document.getElementById('customTimeFields').style.display = isCustom ? 'block' : 'none';
+    });
   </script>
 </body>
 </html>
