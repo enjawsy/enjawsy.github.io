@@ -8,7 +8,7 @@
   <style>
     body { font-family: sans-serif; padding: 2rem; max-width: 500px; margin: auto; }
     label { display: block; margin-top: 1rem; }
-    input[type="text"], input[type="time"], input[type="date"] {
+    input[type="date"], select {
       width: 100%; padding: 0.5rem; margin-top: 0.2rem;
     }
     button {
@@ -25,12 +25,11 @@
     <input type="date" id="datum">
   </label>
 
-  <label>Uhrzeit von:
-    <input type="time" id="von">
-  </label>
-
-  <label>Uhrzeit bis:
-    <input type="time" id="bis">
+  <label>Wochentag & Uhrzeit:
+    <select id="trainingSlot">
+      <option value="dienstag">Dienstag (17:30 - 19:00)</option>
+      <option value="donnerstag">Donnerstag (17:00 - 18:30)</option>
+    </select>
   </label>
 
   <label>
@@ -66,11 +65,21 @@
 
     function addTrainingstag() {
       const datum = document.getElementById('datum').value;
-      const von = document.getElementById('von').value;
-      const bis = document.getElementById('bis').value;
+      const slot = document.getElementById('trainingSlot').value;
       const planung = document.getElementById('planung').checked;
 
-      if (!datum || !von || !bis) return alert('Bitte alle Felder ausfüllen.');
+      if (!datum) return alert('Bitte ein Datum auswählen.');
+
+      let von = '';
+      let bis = '';
+
+      if (slot === 'dienstag') {
+        von = '17:30';
+        bis = '19:00';
+      } else if (slot === 'donnerstag') {
+        von = '17:00';
+        bis = '18:30';
+      }
 
       const entries = loadFromStorage();
       entries.push({ datum, von, bis, planung });
