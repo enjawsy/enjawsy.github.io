@@ -5,36 +5,123 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Datumsliste</title>
   <style>
-    body { font-family: sans-serif; margin:0; padding:0; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; background:#fafafa; }
-    button { padding:1rem 2rem; font-size:1.2rem; margin-bottom:1rem; border:none; border-radius:8px; background-color:#0a74da; color:white; }
-    ul { list-style:none; padding:0; width:90%; max-width:320px; margin:0; }
-    li { padding:0.5rem 1rem; border-bottom:1px solid #ccc; }
+    body {
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+    }
+
+    button {
+      padding: 0.8rem 1.5rem;
+      font-size: 1rem;
+      margin: 0.5rem;
+      border: none;
+      border-radius: 8px;
+      background-color: #0a74da;
+      color: white;
+    }
+
+    input[type="text"] {
+      padding: 0.6rem;
+      font-size: 1rem;
+      margin-top: 1rem;
+      width: 200px;
+      text-align: center;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      width: 100%;
+      max-width: 300px;
+    }
+
+    li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 1rem;
+      border-bottom: 1px solid #ccc;
+    }
+
+    .delete-btn {
+      background: none;
+      border: none;
+      color: red;
+      font-size: 1rem;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
-  <button onclick="addDate()">➕ Hinzufügen</button>
+  <button onclick="addToday()">➕ Heute hinzufügen</button>
+
+  <input id="customDateInput" type="text" placeholder="z. B. 22.07.2025" />
+  <button onclick="addCustom()">➕ Datum hinzufügen</button>
+
   <ul id="dateList"></ul>
+
   <script>
     const dateList = document.getElementById('dateList');
+    const input = document.getElementById('customDateInput');
+
+    let dates = [];
+
     function loadDates() {
       const saved = localStorage.getItem('dates');
-      if (saved) JSON.parse(saved).forEach(d => addDateToDOM(d));
+      if (saved) {
+        dates = JSON.parse(saved);
+        dates.forEach(addDateToDOM);
+      }
     }
-    function addDate() {
-      const now = new Date().toLocaleDateString('de-DE');
-      addDateToDOM(now);
-      saveDate(now);
+
+    function addToday() {
+      const today = new Date().toLocaleDateString('de-DE');
+      addDate(today);
     }
-    function addDateToDOM(date) {
+
+    function addCustom() {
+      const customDate = input.value.trim();
+      if (customDate === '') {
+        alert("Bitte ein Datum eingeben.");
+        return;
+      }
+      addDate(customDate);
+      input.value = '';
+    }
+
+    function addDate(date) {
+      dates.unshift(date);
+      saveDates();
+      renderList();
+    }
+
+    function deleteDate(index) {
+      dates.splice(index, 1);
+      saveDates();
+      renderList();
+    }
+
+    function saveDates() {
+      localStorage.setItem('dates', JSON.stringify(dates));
+    }
+
+    function renderList() {
+      dateList.innerHTML = '';
+      dates.forEach((date, index) => addDateToDOM(date, index));
+    }
+
+    function addDateToDOM(date, index) {
       const li = document.createElement('li');
-      li.textContent = date;
-      dateList.prepend(li);
+      li.innerHTML = `
+        <span>${date}</span>
+        <button class="delete-btn" onclick="deleteDate(${index})">🗑️</button>
+      `;
+      dateList.appendChild(li);
     }
-    function saveDate(date) {
-      const arr = JSON.parse(localStorage.getItem('dates') || '[]');
-      arr.unshift(date);
-      localStorage.setItem('dates', JSON.stringify(arr));
-    }
+
     loadDates();
   </script>
 </body>
