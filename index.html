@@ -27,17 +27,19 @@
 
   <label>Wochentag & Uhrzeit:
     <select id="trainingSlot">
-      <div id="customTimeFields" style="display: none;">
-        <label>Von:
-          <input type="time" id="zeitVon">
-        </label>
-        <label>Bis:
-          <input type="time" id="zeitBis">
-        </label>
-      </div>
       <option value="dienstag">Dienstag (17:30 - 19:00)</option>
       <option value="donnerstag">Donnerstag (17:00 - 18:30)</option>
+      <option value="custom">Benutzerdefiniert</option>
     </select>
+
+    <div id="customTimeFields" style="display: none;">
+      <label>Von:
+        <input type="time" id="zeitVon">
+      </label>
+      <label>Bis:
+        <input type="time" id="zeitBis">
+      </label>
+    </div>
   </label>
 
   <label>
