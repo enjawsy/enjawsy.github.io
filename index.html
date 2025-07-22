@@ -1,143 +1,128 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Datumsliste</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trainingstage Abrechnung</title>
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
   <style>
-    body {
-      font-family: sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 2rem;
+    body { font-family: sans-serif; padding: 2rem; max-width: 500px; margin: auto; }
+    label { display: block; margin-top: 1rem; }
+    input[type="text"], input[type="time"], input[type="date"] {
+      width: 100%; padding: 0.5rem; margin-top: 0.2rem;
     }
-
     button {
-      padding: 0.8rem 1.5rem;
-      font-size: 1rem;
-      margin: 0.5rem;
-      border: none;
-      border-radius: 8px;
-      background-color: #0a74da;
-      color: white;
+      margin-top: 1rem; padding: 0.7rem 1.2rem;
     }
-
-    input[type="text"] {
-      padding: 0.6rem;
-      font-size: 1rem;
-      margin-top: 1rem;
-      width: 200px;
-      text-align: center;
-    }
-
-    ul {
-      list-style: none;
-      padding: 0;
-      width: 100%;
-      max-width: 300px;
-    }
-
-    li {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0.5rem 0.3rem;
-      border-bottom: 1px solid #ccc;
-    }
-
-    .left {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      flex-grow: 1;
-    }
-
-    .delete-btn {
-      background: none;
-      border: none;
-      color: red;
-      font-size: 1rem;
-      cursor: pointer;
-    }
+    ul { padding: 0; list-style: none; margin-top: 1rem; }
+    li { padding: 0.5rem; border-bottom: 1px solid #ccc; }
   </style>
 </head>
 <body>
-  <button onclick="addToday()">➕ Heute hinzufügen</button>
+  <h2>📆 Trainingstag eintragen</h2>
 
-  <input id="customDateInput" type="text" placeholder="z. B. 22.07.2025" />
-  <button onclick="addCustom()">➕ Datum hinzufügen</button>
+  <label>Datum:
+    <input type="date" id="datum">
+  </label>
 
-  <ul id="dateList"></ul>
+  <label>Uhrzeit von:
+    <input type="time" id="von">
+  </label>
+
+  <label>Uhrzeit bis:
+    <input type="time" id="bis">
+  </label>
+
+  <label>
+    <input type="checkbox" id="planung"> Planung (x)
+  </label>
+
+  <button onclick="addTrainingstag()">➕ Eintrag speichern</button>
+
+  <h3>Gespeicherte Trainingstage</h3>
+  <ul id="trainingList"></ul>
+
+  <label>Datei hochladen (Original .xlsx Vorlage):
+    <input type="file" id="fileInput" accept=".xlsx">
+  </label>
+
+  <button onclick="insertIntoExcel()">📥 Excel generieren</button>
 
   <script>
-    const dateList = document.getElementById('dateList');
-    const input = document.getElementById('customDateInput');
+    let workbook;
+    let sheetName;
 
-    let dates = [];
-
-    function loadDates() {
-      const saved = localStorage.getItem('dates');
-      if (saved) {
-        dates = JSON.parse(saved);
-        renderList();
-      }
+    function saveToStorage(entries) {
+      localStorage.setItem('trainings', JSON.stringify(entries));
     }
 
-    function addToday() {
-      const today = new Date().toLocaleDateString('de-DE');
-      addDate({ value: today, checked: false });
-    }
-
-    function addCustom() {
-      const customDate = input.value.trim();
-      if (customDate === '') {
-        alert("Bitte ein Datum eingeben.");
-        return;
-      }
-      addDate({ value: customDate, checked: false });
-      input.value = '';
-    }
-
-    function addDate(entry) {
-      dates.unshift(entry);
-      saveDates();
-      renderList();
-    }
-
-    function toggleCheckbox(index) {
-      dates[index].checked = !dates[index].checked;
-      saveDates();
-    }
-
-    function deleteDate(index) {
-      dates.splice(index, 1);
-      saveDates();
-      renderList();
-    }
-
-    function saveDates() {
-      localStorage.setItem('dates', JSON.stringify(dates));
+    function loadFromStorage() {
+      return JSON.parse(localStorage.getItem('trainings') || '[]');
     }
 
     function renderList() {
-      dateList.innerHTML = '';
-      dates.forEach((entry, index) => {
+      const list = document.getElementById('trainingList');
+      const entries = loadFromStorage();
+      list.innerHTML = '';
+      entries.forEach((e, i) => {
         const li = document.createElement('li');
-
-        li.innerHTML = `
-          <div class="left">
-            <input type="checkbox" ${entry.checked ? 'checked' : ''} onchange="toggleCheckbox(${index})" />
-            <span>${entry.value}</span>
-          </div>
-          <button class="delete-btn" onclick="deleteDate(${index})">🗑️</button>
-        `;
-
-        dateList.appendChild(li);
+        li.textContent = `${e.datum} | ${e.von} - ${e.bis} ${e.planung ? '(Planung)' : ''}`;
+        list.appendChild(li);
       });
     }
 
-    loadDates();
+    function addTrainingstag() {
+      const datum = document.getElementById('datum').value;
+      const von = document.getElementById('von').value;
+      const bis = document.getElementById('bis').value;
+      const planung = document.getElementById('planung').checked;
+
+      if (!datum || !von || !bis) return alert('Bitte alle Felder ausfüllen.');
+
+      const entries = loadFromStorage();
+      entries.push({ datum, von, bis, planung });
+      saveToStorage(entries);
+      renderList();
+      alert('Eintrag gespeichert.');
+    }
+
+    document.getElementById('fileInput').addEventListener('change', (e) => {
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        const data = new Uint8Array(evt.target.result);
+        workbook = XLSX.read(data, { type: 'array' });
+        sheetName = workbook.SheetNames[0];
+        alert('Datei erfolgreich geladen: ' + sheetName);
+      };
+      reader.readAsArrayBuffer(e.target.files[0]);
+    });
+
+    function insertIntoExcel() {
+      if (!workbook) return alert('Bitte zuerst eine Excel-Datei hochladen.');
+      const entries = loadFromStorage();
+      const ws = workbook.Sheets[sheetName];
+      const sheetData = XLSX.utils.sheet_to_json(ws, { header: 1 });
+
+      const startRow = 15;
+      let nextRow = startRow;
+      while (sheetData[nextRow] && sheetData[nextRow][1]) nextRow++;
+
+      entries.forEach(entry => {
+        const excelDatum = entry.datum.split('-').reverse().join('.');
+        const row = [];
+        row[1] = excelDatum;
+        row[2] = entry.von;
+        row[3] = entry.bis;
+        row[6] = entry.planung ? 'x' : '';
+        sheetData[nextRow++] = row;
+      });
+
+      const newSheet = XLSX.utils.aoa_to_sheet(sheetData);
+      workbook.Sheets[sheetName] = newSheet;
+      XLSX.writeFile(workbook, 'Abrechnung_Training.xlsx');
+    }
+
+    renderList();
   </script>
 </body>
 </html>
