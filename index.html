@@ -40,10 +40,17 @@
 
     li {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      padding: 0.5rem 1rem;
+      justify-content: space-between;
+      padding: 0.5rem 0.3rem;
       border-bottom: 1px solid #ccc;
+    }
+
+    .left {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-grow: 1;
     }
 
     .delete-btn {
@@ -73,13 +80,13 @@
       const saved = localStorage.getItem('dates');
       if (saved) {
         dates = JSON.parse(saved);
-        dates.forEach(addDateToDOM);
+        renderList();
       }
     }
 
     function addToday() {
       const today = new Date().toLocaleDateString('de-DE');
-      addDate(today);
+      addDate({ value: today, checked: false });
     }
 
     function addCustom() {
@@ -88,14 +95,19 @@
         alert("Bitte ein Datum eingeben.");
         return;
       }
-      addDate(customDate);
+      addDate({ value: customDate, checked: false });
       input.value = '';
     }
 
-    function addDate(date) {
-      dates.unshift(date);
+    function addDate(entry) {
+      dates.unshift(entry);
       saveDates();
       renderList();
+    }
+
+    function toggleCheckbox(index) {
+      dates[index].checked = !dates[index].checked;
+      saveDates();
     }
 
     function deleteDate(index) {
@@ -110,16 +122,19 @@
 
     function renderList() {
       dateList.innerHTML = '';
-      dates.forEach((date, index) => addDateToDOM(date, index));
-    }
+      dates.forEach((entry, index) => {
+        const li = document.createElement('li');
 
-    function addDateToDOM(date, index) {
-      const li = document.createElement('li');
-      li.innerHTML = `
-        <span>${date}</span>
-        <button class="delete-btn" onclick="deleteDate(${index})">🗑️</button>
-      `;
-      dateList.appendChild(li);
+        li.innerHTML = `
+          <div class="left">
+            <input type="checkbox" ${entry.checked ? 'checked' : ''} onchange="toggleCheckbox(${index})" />
+            <span>${entry.value}</span>
+          </div>
+          <button class="delete-btn" onclick="deleteDate(${index})">🗑️</button>
+        `;
+
+        dateList.appendChild(li);
+      });
     }
 
     loadDates();
